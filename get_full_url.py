@@ -1,12 +1,29 @@
-import requests as req
-import urllib
-# site = input('Digite o site: ')
-site = 'https://youtu.be/sypUNwrnenY'
-site = urllib.parse.urlencode({'u': site})
+import argparse
+from urllib import request, parse
 
-request = req.post('https://checkshorturl.com/expand.php', data=site)
+parser = argparse.ArgumentParser(description='Retorna URL completa')
+parser.add_argument('url', type=str)
+arg = parser.parse_args()
+site = arg.url
+if site == '':
+    exit('Site inválido')
+data = parse.urlencode({'u': site}).encode()
 
-cont = request.content
-table_index = cont.index('<table')
-# a_index = cont.
-print(cont)
+req = request.Request('https://checkshorturl.com/expand.php', data=data)
+
+cont = request.urlopen(req)
+cont = str(cont.read())
+table_index = cont.find('<table')
+if table_index < 0:
+    exit('Não encontrado')
+a_index = cont.find('<a', table_index)
+if a_index < 0:
+    exit('Não encontrado')
+href_index = cont.find('href=', a_index)
+if href_index < 0:
+    exit('Não encontrado')
+space_index = cont.find(' ', href_index)
+if space_index < 0:
+    exit('Não encontrado')
+link = cont[href_index + 6:space_index - 1]
+print(link)
